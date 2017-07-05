@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.uuzz.demo.dao.IDemoDao">
+
+	<resultMap type="com.uuzz.demo.bean.Demo" id="demo">
+		<id column="id" property="id" jdbcType="NUMERIC" />
+		<result column="no" property="no" jdbcType="NUMERIC" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="createTime" property="createTime" javaType="Date"
+			jdbcType="TIMESTAMP" />
+		<result column="updateTime" property="updateTime" javaType="Date"
+			jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<sql id="demo_column">
+		id, no, name, createTime, updateTime
+	</sql>
+
+	<select id="getDemos" resultMap="demo">
+		SELECT
+		<include refid="demo_column" />
+		FROM TBL_DEMO
+		<trim prefix="WHERE" prefixOverrides="AND" >
+			<if test="id!=null"> AND id=#{id}</if>
+			<if test="no!=null"> AND no=#{no}</if>
+			<if test="name != null and name.length()>0"> AND name=#{name}</if>
+		</trim>
+	</select>
+
+	<update id="updateDemo" parameterType="com.uuzz.demo.bean.Demo">
+		UPDATE TBL_DEMO
+		<trim prefix="set" suffixOverrides="," suffix=" where id = #{id} ">
+			<if test="no!=null">no=#{no},</if>
+			<if test="name!=null and name.length>0">name=#{name},</if>
+			<if test="updateTime!=null">updateTime=#{updateTime},</if>
+		</trim>
+	</update>
+
+	<delete id="deleteDemo" parameterType="com.uuzz.demo.bean.Demo">
+		DELETE FROM TBL_DEMO
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="id!=null"> AND id=#{id}</if>
+			<if test="no!=null"> AND no=#{no}</if>
+			<if test="name != null and name.length()>0"> AND name=#{name}</if>
+		</trim>
+	</delete>
+
+	<insert id="addDemo" parameterType="com.uuzz.demo.bean.Demo">
+		INSERT INTO TBL_DEMO (no,name,createTime,updateTime)
+		VALUES(#{no},#{name},#{createTime},#{updateTime});
+	</insert>
+	
+</mapper>

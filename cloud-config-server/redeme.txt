@@ -1,0 +1,99 @@
+spring-cloud-config
+
+1. 申请一个git账号(或者svn账号/官方推荐git)
+2. 新建一个仓库，并在仓库中添加两个配置文件进行测试 ：cloud-config-dev.properties、cloud-config-test.properties
+3. 新建两个springboot工程 cloud-config-server、cloud-config-client
+4. 在cloud-config-server工程的pom.xml文件中引入如下依赖：
+
+   <!--spring-cloud-config 支持 -->
+   <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-config</artifactId>
+                <version>1.2.2.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    <!--config-server依赖 -->
+    <dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-config-server</artifactId>
+	</dependency>
+	
+6. 在cloud-config-server工程 的配置文件中，进行如下配置：
+   
+    #congfig
+	server.port=8888 -- 指明本服务的端口
+	#git配置文件访问路径
+	spring.cloud.config.server.git.uri=https://github.com/loveyuanyuanisluckly/spring-cloud-config.git
+	#git中访问目录文件件位置
+	spring.cloud.config.server.git.searchPaths=config
+	
+7. 启动cloud-config-server 访问端口 http://localhost:8888/cloud-config/dev(test)
+        可以查看cloud-config-dev.properties、cloud-config-test.properties对应文件的配置信息
+        路劲访问规则 ：
+	/{application}/{profile}[/{label}]
+	/{application}-{profile}.yml
+	/{label}/{application}-{profile}.yml
+	/{application}-{profile}.properties
+	/{label}/{application}-{profile}.properties
+	
+   application:表示应用名称,在client中通过spring.config.name配置
+   profile:表示获取指定环境下配置，例如开发环境、测试环境、生产环境 默认值default，实际开发中可以是 dev、test、demo、production等
+   label: git标签，默认值master
+   
+ 8. 在cloud-config-client工程的pom.xml文件中引入如下依赖：
+ 
+    <!--spring-cloud-config 支持 -->
+   <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-config</artifactId>
+                <version>1.2.2.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    <!--config-client依赖 -->
+    <dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-config-client</artifactId>
+	</dependency>
+	
+9. cloud-config-client进行如下配置：
+   
+    #client工程上下文
+	spring.application.name=cloud-config
+	#分支 在svn中对应trunk/branches
+	spring.cloud.config.label=master
+	#抛面
+	spring.cloud.config.profile=dev
+	#config-server地址
+	spring.cloud.config.uri= http://localhost:8888/config/
+	
+10. 编写测试类CloudConfigController.java测试客户端是否可以拿到配置：
+
+    @RestController
+	public class CloudConfigController {
+	
+		@Value("${application.author}") -- 该属性为git仓库中配置文件自定义属性
+		private String author;
+		
+		@RequestMapping("/")
+	    String testConfig() {
+	        return "Hello " + author + "!";
+	    }
+	}
+
+11. 启动cloud-config-client 
+
+          控制台打印类似的日志: Fetching config from server at: http://localhost:8888说明已经连接到config-server
+          成功启动后访问 locahost:port/application/ 看到输出页面的Hello***说明成功！
+    
